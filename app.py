@@ -58,5 +58,23 @@ def get_item(item_id):
         "item": item
     })
 
+# DELETE an item
+@app.route('/items/<int:item_id>', methods=['DELETE'])
+def delete_item(item_id):
+    item = next((item for item in inventory if item['id'] == item_id), None)
+    
+    if not item:
+        return jsonify({
+            "success": False,
+            "error": f"Item with id {item_id} not found"
+        }), 404
+    
+    inventory.remove(item)
+    
+    return jsonify({
+        "success": True,
+        "message": f"Item '{item['name']}' has been deleted successfully"
+    })
+
 if __name__ == '__main__':
     app.run(debug=True)
