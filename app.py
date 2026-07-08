@@ -18,7 +18,7 @@ def get_items():
         "total": len(inventory)
     })
 
-# POST - Add new item
+# POST for Add new item
 @app.route('/items', methods=['POST'])
 def add_item():
     data = request.get_json()
@@ -55,6 +55,34 @@ def get_item(item_id):
     
     return jsonify({
         "success": True,
+        "item": item
+    })
+
+# PATCH for  Updating an item
+@app.route('/items/<int:item_id>', methods=['PATCH'])
+def update_item(item_id):
+    item = next((item for item in inventory if item['id'] == item_id), None)
+    
+    if not item:
+        return jsonify({
+            "success": False,
+            "error": f"Item with id {item_id} not found"
+        }), 404
+    
+    data = request.get_json()
+    
+    if data.get('name'):
+        item['name'] = data['name']
+    if 'quantity' in data:
+        item['quantity'] = data['quantity']
+    if 'price' in data:
+        item['price'] = data['price']
+    if data.get('category'):
+        item['category'] = data['category']
+    
+    return jsonify({
+        "success": True,
+        "message": f"Item '{item['name']}' updated successfully",
         "item": item
     })
 
