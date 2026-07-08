@@ -1,3 +1,23 @@
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+# Mock Database
+inventory = []
+
+@app.route('/')
+def home():
+    return jsonify({"message": "Inventory Management System API is running!"})
+
+# GET all items
+@app.route('/items', methods=['GET'])
+def get_items():
+    return jsonify({
+        "success": True,
+        "items": inventory,
+        "total": len(inventory)
+    })
+
 # POST - Add new item
 @app.route('/items', methods=['POST'])
 def add_item():
@@ -6,7 +26,6 @@ def add_item():
     if not data or not data.get('name'):
         return jsonify({"success": False, "error": "Item name is required"}), 400
     
-    # Create new item
     new_item = {
         "id": len(inventory) + 1,
         "name": data['name'],
@@ -22,3 +41,22 @@ def add_item():
         "message": f"Successfully added {new_item['name']} to inventory",
         "item": new_item
     }), 201
+
+# GET single item by ID
+@app.route('/items/<int:item_id>', methods=['GET'])
+def get_item(item_id):
+    item = next((item for item in inventory if item['id'] == item_id), None)
+    
+    if not item:
+        return jsonify({
+            "success": False,
+            "error": f"Item with id {item_id} not found"
+        }), 404
+    
+    return jsonify({
+        "success": True,
+        "item": item
+    })
+
+if __name__ == '__main__':
+    app.run(debug=True)
