@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Inventory System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #2c3e50; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        form { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+        input, button { margin: 5px; padding: 8px; }
+    </style>
+</head>
+<body>
+    <h1>My Inventory Management System</h1>
+    
+    <h2>Add New Item</h2>
+    <!-- I added this form to add new items manually -->
+    <form id="addForm">
+        <input type="text" id="name" placeholder="Item Name" required>
+        <input type="number" id="quantity" placeholder="Quantity" value="1">
+        <input type="number" id="price" placeholder="Price" step="0.01">
+        <button type="submit">Add Item</button>
+    </form>
+
+    <h2>Current Inventory</h2>
+    <div id="inventory-list">
+        Loading items...
+    </div>
+
+    <script>
+        // My JavaScript to load inventory from backend
+        async function loadInventory() {
+            const response = await fetch('/items');
+            const data = await response.json();
+            const container = document.getElementById('inventory-list');
+            
+            if (data.items.length === 0) {
+                container.innerHTML = "<p>No items yet.</p>";
+                return;
+            }
+
+            let html = '<table><tr><th>ID</th><th>Name</th><th>Quantity</th><th>Price</th><th>Actions</th></tr>';
+            data.items.forEach(item => {
+                html += `<tr>
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.price}</td>
+                    <td><button onclick="deleteItem(${item.id})">Delete</button></td>
+                </tr>`;
+            });
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Load inventory when page opens
+        window.onload = loadInventory;
+    </script>
+</body>
+</html>
