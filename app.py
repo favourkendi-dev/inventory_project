@@ -19,7 +19,7 @@ def get_items():
         "total": len(inventory)
     })
 
-# POST  for Adding a new item
+# POST - Add new item (manual)
 @app.route('/items', methods=['POST'])
 def add_item():
     data = request.get_json()
@@ -32,7 +32,8 @@ def add_item():
         "name": data['name'],
         "quantity": data.get('quantity', 0),
         "price": data.get('price', 0.0),
-        "category": data.get('category', 'General')
+        "category": data.get('category', 'General'),
+        "barcode": data.get('barcode')
     }
     
     inventory.append(new_item)
@@ -43,69 +44,40 @@ def add_item():
         "item": new_item
     }), 201
 
-# GET single item by ID
+# GET single item
 @app.route('/items/<int:item_id>', methods=['GET'])
 def get_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
-    
     if not item:
-        return jsonify({
-            "success": False,
-            "error": f"Item with id {item_id} not found"
-        }), 404
-    
-    return jsonify({
-        "success": True,
-        "item": item
-    })
+        return jsonify({"success": False, "error": f"Item with id {item_id} not found"}), 404
+    return jsonify({"success": True, "item": item})
 
-# PATCH  for Updating an item
+# PATCH - Update item
 @app.route('/items/<int:item_id>', methods=['PATCH'])
 def update_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
-    
     if not item:
-        return jsonify({
-            "success": False,
-            "error": f"Item with id {item_id} not found"
-        }), 404
+        return jsonify({"success": False, "error": f"Item with id {item_id} not found"}), 404
     
     data = request.get_json()
+    if data.get('name'): item['name'] = data['name']
+    if 'quantity' in data: item['quantity'] = data['quantity']
+    if 'price' in data: item['price'] = data['price']
+    if data.get('category'): item['category'] = data['category']
     
-    if data.get('name'):
-        item['name'] = data['name']
-    if 'quantity' in data:
-        item['quantity'] = data['quantity']
-    if 'price' in data:
-        item['price'] = data['price']
-    if data.get('category'):
-        item['category'] = data['category']
-    
-    return jsonify({
-        "success": True,
-        "message": f"Item '{item['name']}' updated successfully",
-        "item": item
-    })
+    return jsonify({"success": True, "message": f"Item updated", "item": item})
 
-# DELETE an item
+# DELETE item
 @app.route('/items/<int:item_id>', methods=['DELETE'])
 def delete_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
-    
     if not item:
-        return jsonify({
-            "success": False,
-            "error": f"Item with id {item_id} not found"
-        }), 404
+        return jsonify({"success": False, "error": f"Item with id {item_id} not found"}), 404
     
     inventory.remove(item)
-    
-    return jsonify({
-        "success": True,
-        "message": f"Item '{item['name']}' has been deleted successfully"
-    })
+    return jsonify({"success": True, "message": f"Item deleted successfully"})
 
-#  Search OpenFoodFacts
+# Search OpenFoodFacts
 @app.route('/search', methods=['GET'])
 def search_product():
     query = request.args.get('q')
@@ -116,7 +88,7 @@ def search_product():
     elif query:
         product = search_product_by_name(query)
     else:
-        return jsonify({"success": False, "error": "Provide 'q' or 'barcode' parameter"}), 400
+        return jsonify({"success": False, "error": "Provide 'q' or 'barcode'"}), 400
     
     if product:
         return jsonify({
@@ -129,11 +101,38 @@ def search_product():
                 "nutrition": product.get('nutriments', {})
             }
         })
-    else:
-        return jsonify({
-            "success": False,
-            "error": "Product not found in OpenFoodFacts"
-        }), 404
+    return jsonify({"success": False, "error": "Product not found"}), 404
+
+#  Add product from OpenFoodFacts to inventory
+@app.route('/items/from-external', methods=['POST'])
+def add_from_external():
+    data = request.get_json()
+    barcode = data.get('barcode')
+    
+    if not barcode:
+        return jsonify({"success": False, "error": "Barcode is required"}), 400
+    
+    product = search_product_by_barcode(barcode)
+    if not product:
+        return jsonify({"success": False, "error": "Product not found in OpenFoodFacts"}), 404
+    
+    new_item = {
+        "id": len(inventory) + 1,
+        "name": product.get('product_name', 'Unknown'),
+        "quantity": data.get('quantity', 1),
+        "price": data.get('price', 0.0),
+        "category": product.get('categories', 'General'),
+        "barcode": barcode,
+        "brand": product.get('brands')
+    }
+    
+    inventory.append(new_item)
+    
+    return jsonify({
+        "success": True,
+        "message": f"Added {new_item['name']} from OpenFoodFacts",
+        "item": new_item
+    }), 201
 
 if __name__ == '__main__':
     app.run(debug=True)
