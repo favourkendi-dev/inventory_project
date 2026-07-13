@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from external_api import search_product_by_barcode, search_product_by_name
 
 app = Flask(__name__)
 
@@ -18,7 +19,7 @@ def get_items():
         "total": len(inventory)
     })
 
-# POST for Add new item
+# POST  for Adding a new item
 @app.route('/items', methods=['POST'])
 def add_item():
     data = request.get_json()
@@ -58,7 +59,7 @@ def get_item(item_id):
         "item": item
     })
 
-# PATCH for  Updating an item
+# PATCH  for Updating an item
 @app.route('/items/<int:item_id>', methods=['PATCH'])
 def update_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
@@ -103,6 +104,36 @@ def delete_item(item_id):
         "success": True,
         "message": f"Item '{item['name']}' has been deleted successfully"
     })
+
+#  Search OpenFoodFacts
+@app.route('/search', methods=['GET'])
+def search_product():
+    query = request.args.get('q')
+    barcode = request.args.get('barcode')
+    
+    if barcode:
+        product = search_product_by_barcode(barcode)
+    elif query:
+        product = search_product_by_name(query)
+    else:
+        return jsonify({"success": False, "error": "Provide 'q' or 'barcode' parameter"}), 400
+    
+    if product:
+        return jsonify({
+            "success": True,
+            "product": {
+                "name": product.get('product_name'),
+                "brand": product.get('brands'),
+                "category": product.get('categories'),
+                "barcode": product.get('code'),
+                "nutrition": product.get('nutriments', {})
+            }
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "error": "Product not found in OpenFoodFacts"
+        }), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
