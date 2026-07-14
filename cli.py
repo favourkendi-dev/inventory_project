@@ -25,3 +25,18 @@ def main():
             break
         else:
             print("Invalid choice. Try again.")
+
+# My function to view items in inventory
+def view_items():
+    """My function to view all items"""
+    try:
+        response = requests.get(f"{BASE_URL}/items")
+        data = response.json()
+        print("\nCurrent Inventory ")
+        if not data["items"]:
+            print("No items yet.")
+        else:
+            for item in data["items"]:
+                print(f"ID: {item['id']} | {item['name']} | Qty: {item['quantity']} | Price: {item['price']}")
+    except:
+        print("Could not connect to server. Make sure the Flask app is running.")
