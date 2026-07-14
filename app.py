@@ -1,16 +1,21 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from external_api import search_product_by_barcode, search_product_by_name
 
 app = Flask(__name__)
 
+
 # This is my mock database for now
 inventory = []
 
+# I added this so user can see the form in browser
 @app.route('/')
-def home():
-    """Home route to check if the API is running"""
-    return jsonify({"message": "Inventory Management System API is running!"})
+def index():
+    return render_template('index.html')
 
+# Old home route moved to /api
+@app.route('/api')
+def home():
+    return jsonify({"message": "Inventory Management System API is running!"})
 
 # Have used GET so that i GET all items in inventory
 @app.route('/items', methods=['GET'])
@@ -77,7 +82,6 @@ def delete_item(item_id):
         return jsonify({"success": False, "error": f"Item with id {item_id} not found"}), 404
     inventory.remove(item)
     return jsonify({"success": True, "message": f"Item deleted successfully"})
-
 
 # Tried Searching products from OpenFoodFacts
 @app.route('/search', methods=['GET'])
