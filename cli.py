@@ -69,3 +69,8 @@ def search_product():
             print(data["error"])
     except:
         print("Could not connect to server.")
+
+
+# My  Main function for running the CLI application
+if __name__ == "__main__":
+    main()
