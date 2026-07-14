@@ -3,14 +3,16 @@ from external_api import search_product_by_barcode, search_product_by_name
 
 app = Flask(__name__)
 
-# Mock Database
+# This is my mock database for now
 inventory = []
 
 @app.route('/')
 def home():
+    """Home route to check if the API is running"""
     return jsonify({"message": "Inventory Management System API is running!"})
 
-# GET all items
+
+# Have used GET so that i GET all items in inventory
 @app.route('/items', methods=['GET'])
 def get_items():
     return jsonify({
@@ -19,7 +21,7 @@ def get_items():
         "total": len(inventory)
     })
 
-# POST - Add new item (manual)
+# i used Add to Add a new item manually
 @app.route('/items', methods=['POST'])
 def add_item():
     data = request.get_json()
@@ -44,7 +46,7 @@ def add_item():
         "item": new_item
     }), 201
 
-# GET single item
+# My code for getting one specific item
 @app.route('/items/<int:item_id>', methods=['GET'])
 def get_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
@@ -52,7 +54,7 @@ def get_item(item_id):
         return jsonify({"success": False, "error": f"Item with id {item_id} not found"}), 404
     return jsonify({"success": True, "item": item})
 
-# PATCH - Update item
+# I used Update to Update an existing item
 @app.route('/items/<int:item_id>', methods=['PATCH'])
 def update_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
@@ -65,21 +67,22 @@ def update_item(item_id):
     if 'price' in data: item['price'] = data['price']
     if data.get('category'): item['category'] = data['category']
     
-    return jsonify({"success": True, "message": f"Item updated", "item": item})
+    return jsonify({"success": True, "message": f"Item updated successfully", "item": item})
 
-# DELETE item
+# My code for deleting an item
 @app.route('/items/<int:item_id>', methods=['DELETE'])
 def delete_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
     if not item:
         return jsonify({"success": False, "error": f"Item with id {item_id} not found"}), 404
-    
     inventory.remove(item)
     return jsonify({"success": True, "message": f"Item deleted successfully"})
 
-# Search OpenFoodFacts
+
+# Tried Searching products from OpenFoodFacts
 @app.route('/search', methods=['GET'])
 def search_product():
+    """Search product either by barcode or name"""
     query = request.args.get('q')
     barcode = request.args.get('barcode')
     
@@ -88,7 +91,7 @@ def search_product():
     elif query:
         product = search_product_by_name(query)
     else:
-        return jsonify({"success": False, "error": "Provide 'q' or 'barcode'"}), 400
+        return jsonify({"success": False, "error": "Provide 'q' or 'barcode' parameter"}), 400
     
     if product:
         return jsonify({
@@ -103,35 +106,51 @@ def search_product():
         })
     return jsonify({"success": False, "error": "Product not found"}), 404
 
-#  Add product from OpenFoodFacts to inventory
+# Added product from external API to our inventory
 @app.route('/items/from-external', methods=['POST'])
 def add_from_external():
+    """Add a product found on OpenFoodFacts directly into our inventory"""
     data = request.get_json()
     barcode = data.get('barcode')
+    name = data.get('name')
     
-    if not barcode:
-        return jsonify({"success": False, "error": "Barcode is required"}), 400
+    if not barcode and not name:
+        return jsonify({"success": False, "error": "Barcode or name is required"}), 400
     
-    product = search_product_by_barcode(barcode)
+    # Try to get real data from OpenFoodFacts
+    product = None
+    if barcode:
+        product = search_product_by_barcode(barcode)
+    elif name:
+        product = search_product_by_name(name)
+    
+    # Fallback if API fails or product not found
     if not product:
-        return jsonify({"success": False, "error": "Product not found in OpenFoodFacts"}), 404
+        print("Using mock product data - API unavailable")
+        product = {
+            "product_name": name or "Unknown Product",
+            "brands": "Generic",
+            "categories": "General",
+            "code": barcode or "Unknown"
+        }
     
     new_item = {
         "id": len(inventory) + 1,
-        "name": product.get('product_name', 'Unknown'),
+        "name": product.get('product_name', name or 'Unknown Product'),
         "quantity": data.get('quantity', 1),
         "price": data.get('price', 0.0),
         "category": product.get('categories', 'General'),
-        "barcode": barcode,
-        "brand": product.get('brands')
+        "barcode": barcode or product.get('code'),
+        "brand": product.get('brands', 'Unknown')
     }
     
     inventory.append(new_item)
     
     return jsonify({
         "success": True,
-        "message": f"Added {new_item['name']} from OpenFoodFacts",
-        "item": new_item
+        "message": f"Added {new_item['name']} to inventory",
+        "item": new_item,
+        "note": "Used mock data (API unavailable)" if not product.get('product_name') else "From OpenFoodFacts"
     }), 201
 
 if __name__ == '__main__':
