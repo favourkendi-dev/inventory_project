@@ -55,3 +55,17 @@ def add_item():
         print(response.json()["message"])
     except:
         print("Could not connect to server.")
+
+
+# My function to search product from OpenFoodFacts
+def search_product():
+    query = input("Enter product name or barcode: ")
+    try:
+        response = requests.get(f"{BASE_URL}/search?q={query}")
+        data = response.json()
+        if data["success"]:
+            print(f"\nFound: {data['product']['name']}")
+        else:
+            print(data["error"])
+    except:
+        print("Could not connect to server.")
