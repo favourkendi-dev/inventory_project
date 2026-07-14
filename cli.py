@@ -28,7 +28,6 @@ def main():
 
 # My function to view items in inventory
 def view_items():
-    """My function to view all items"""
     try:
         response = requests.get(f"{BASE_URL}/items")
         data = response.json()
@@ -40,3 +39,19 @@ def view_items():
                 print(f"ID: {item['id']} | {item['name']} | Qty: {item['quantity']} | Price: {item['price']}")
     except:
         print("Could not connect to server. Make sure the Flask app is running.")
+
+# My Function to add a new item through CLI
+def add_item():
+    name = input("Enter item name: ")
+    quantity = int(input("Enter quantity: "))
+    price = float(input("Enter price: "))
+
+    try:
+        response = requests.post(f"{BASE_URL}/items", json={
+            "name": name,
+            "quantity": quantity,
+            "price": price
+        })
+        print(response.json()["message"])
+    except:
+        print("Could not connect to server.")
