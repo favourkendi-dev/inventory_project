@@ -26,12 +26,21 @@
         <button type="submit">Add Item</button>
     </form>
 
+    <h2>Search Product from OpenFoodFacts</h2>
+    <!-- I added this section to search external products -->
+    <form id="searchForm">
+        <input type="text" id="searchQuery" placeholder="Enter product name or barcode" style="width:300px;">
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="searchResult"></div>
+
     <h2>Current Inventory</h2>
     <div id="inventory-list">
         Loading items...
     </div>
-    <script>
 
+    <script>
         // My JavaScript to load inventory from backend
         async function loadInventory() {
             const response = await fetch('/items');
@@ -82,6 +91,40 @@
             loadInventory();
         });
 
+        // My code to search OpenFoodFacts
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchQuery').value.trim();
+            const resultDiv = document.getElementById('searchResult');
+            
+            if (!query) return;
+
+            const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data.success) {
+                resultDiv.innerHTML = `
+                    <p><strong>Found:</strong> ${data.product.name}</p>
+                    <button onclick="addFromExternal('${data.product.barcode || query}')">Add to My Inventory</button>
+                `;
+            } else {
+                resultDiv.innerHTML = `<p style="color:red;">${data.error}</p>`;
+            }
+        });
+
+        // Add from external search result
+        async function addFromExternal(barcode) {
+            const response = await fetch('/items/from-external', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ barcode: barcode, quantity: 1 })
+            });
+            const result = await response.json();
+            alert(result.message);
+            loadInventory();
+            document.getElementById('searchResult').innerHTML = '';
+        }
+
         // My code to delete an item
         async function deleteItem(id) {
             if (!confirm("Are you sure you want to delete this item?")) return;
@@ -98,6 +141,5 @@
         // Load inventory when page opens
         window.onload = loadInventory;
     </script>
-
 </body>
 </html>
