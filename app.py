@@ -1,10 +1,14 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, session
 from external_api import search_product_by_barcode, search_product_by_name
 
 app = Flask(__name__)
+app.secret_key = 'my_secret_key_for_sessions'
 
 # My mock database for storing inventory items
 inventory = []
+
+# My mock database for storing users (plain text for demo)
+users = []
 
 
 # Route to serve the main HTML page
@@ -17,6 +21,108 @@ def index():
 @app.route('/api')
 def api_home():
     return jsonify({"message": "Inventory Management System API is running!"})
+
+
+# My route to render login page
+@app.route('/login', methods=['GET'])
+def login_page():
+    return render_template('login.html')
+
+
+# My route to render register page
+@app.route('/register', methods=['GET'])
+def register_page():
+    return render_template('register.html')
+
+
+# My route to handle user registration
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    
+    if not data or not data.get('username') or not data.get('password'):
+        return jsonify({
+            "success": False,
+            "error": "Username and password are required"
+        }), 400
+    
+    username = data['username']
+    password = data['password']
+    
+    # Check if user already exists
+    existing_user = next((user for user in users if user['username'] == username), None)
+    if existing_user:
+        return jsonify({
+            "success": False,
+            "error": "Username already exists"
+        }), 400
+    
+    # Creating a  new user
+    new_user = {
+        "id": len(users) + 1,
+        "username": username,
+        "password": password
+    }
+    users.append(new_user)
+    
+    return jsonify({
+        "success": True,
+        "message": "Registration successful! Please login."
+    }), 201
+
+
+# My route to handle user login
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    
+    if not data or not data.get('username') or not data.get('password'):
+        return jsonify({
+            "success": False,
+            "error": "Username and password are required"
+        }), 400
+    
+    username = data['username']
+    password = data['password']
+    
+    # Find user by username
+    user = next((user for user in users if user['username'] == username), None)
+    
+    if not user:
+        return jsonify({
+            "success": False,
+            "error": "User not found"
+        }), 404
+    
+    # Checking for  password 
+    if user['password'] != password:
+        return jsonify({
+            "success": False,
+            "error": "Incorrect password"
+        }), 401
+    
+    # Store user in session
+    session['user_id'] = user['id']
+    session['username'] = user['username']
+    
+    return jsonify({
+        "success": True,
+        "message": f"Welcome back, {username}!",
+        "user": {
+            "id": user['id'],
+            "username": user['username']
+        }
+    })
+
+
+# My route to handle user logout
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({
+        "success": True,
+        "message": "Logged out successfully"
+    })
 
 
 # My route to get all items in inventory
