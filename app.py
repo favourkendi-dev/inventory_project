@@ -1,18 +1,25 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from external_api import search_product_by_barcode, search_product_by_name
 
 app = Flask(__name__)
 
-# This is my mock database for now
+# My mock database for storing inventory items
 inventory = []
 
+
+# Route to serve the main HTML page
 @app.route('/')
-def home():
-    """Home route to check if the API is running"""
+def index():
+    return render_template('index.html')
+
+
+# API route to check if backend is running
+@app.route('/api')
+def api_home():
     return jsonify({"message": "Inventory Management System API is running!"})
 
 
-# Have used GET so that i GET all items in inventory
+# My route to get all items in inventory
 @app.route('/items', methods=['GET'])
 def get_items():
     return jsonify({
@@ -21,14 +28,20 @@ def get_items():
         "total": len(inventory)
     })
 
-# i used Add to Add a new item manually
+
+# My route to add a new item manually
 @app.route('/items', methods=['POST'])
 def add_item():
     data = request.get_json()
     
+    # Check if item name is provided
     if not data or not data.get('name'):
-        return jsonify({"success": False, "error": "Item name is required"}), 400
+        return jsonify({
+            "success": False, 
+            "error": "Item name is required"
+        }), 400
     
+    # Create the new item
     new_item = {
         "id": len(inventory) + 1,
         "name": data['name'],
@@ -46,53 +59,91 @@ def add_item():
         "item": new_item
     }), 201
 
-# My code for getting one specific item
+
+# My route to get a single item by ID
 @app.route('/items/<int:item_id>', methods=['GET'])
 def get_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
+    
     if not item:
-        return jsonify({"success": False, "error": f"Item with id {item_id} not found"}), 404
+        return jsonify({
+            "success": False, 
+            "error": f"Item with id {item_id} not found"
+        }), 404
+    
     return jsonify({"success": True, "item": item})
 
-# I used Update to Update an existing item
+
+# My route to update an existing item
 @app.route('/items/<int:item_id>', methods=['PATCH'])
 def update_item(item_id):
+    """Update an existing item's details"""
     item = next((item for item in inventory if item['id'] == item_id), None)
+    
     if not item:
-        return jsonify({"success": False, "error": f"Item with id {item_id} not found"}), 404
+        return jsonify({
+            "success": False, 
+            "error": f"Item with id {item_id} not found"
+        }), 404
     
     data = request.get_json()
-    if data.get('name'): item['name'] = data['name']
-    if 'quantity' in data: item['quantity'] = data['quantity']
-    if 'price' in data: item['price'] = data['price']
-    if data.get('category'): item['category'] = data['category']
     
-    return jsonify({"success": True, "message": f"Item updated successfully", "item": item})
+    # Update only the fields that are provided
+    if data.get('name'):
+        item['name'] = data['name']
+    if 'quantity' in data:
+        item['quantity'] = data['quantity']
+    if 'price' in data:
+        item['price'] = data['price']
+    if data.get('category'):
+        item['category'] = data['category']
+    
+    return jsonify({
+        "success": True, 
+        "message": "Item updated successfully", 
+        "item": item
+    })
 
-# My code for deleting an item
+
+# My route to delete an item
 @app.route('/items/<int:item_id>', methods=['DELETE'])
 def delete_item(item_id):
+    """Delete an item from the inventory"""
     item = next((item for item in inventory if item['id'] == item_id), None)
+    
     if not item:
-        return jsonify({"success": False, "error": f"Item with id {item_id} not found"}), 404
+        return jsonify({
+            "success": False, 
+            "error": f"Item with id {item_id} not found"
+        }), 404
+    
     inventory.remove(item)
-    return jsonify({"success": True, "message": f"Item deleted successfully"})
+    
+    return jsonify({
+        "success": True, 
+        "message": "Item deleted successfully"
+    })
 
 
-# Tried Searching products from OpenFoodFacts
+# My route to search products from OpenFoodFacts
 @app.route('/search', methods=['GET'])
 def search_product():
-    """Search product either by barcode or name"""
+    """Search for a product using OpenFoodFacts API"""
     query = request.args.get('q')
     barcode = request.args.get('barcode')
     
+    # Searching by barcode or name
     if barcode:
         product = search_product_by_barcode(barcode)
     elif query:
         product = search_product_by_name(query)
     else:
-        return jsonify({"success": False, "error": "Provide 'q' or 'barcode' parameter"}), 400
+        return jsonify({
+            "success": False, 
+            "error": "Provide 'q' or 'barcode' parameter"
+        }), 400
     
+    # Returning  product if found
     if product:
         return jsonify({
             "success": True,
@@ -104,18 +155,26 @@ def search_product():
                 "nutrition": product.get('nutriments', {})
             }
         })
-    return jsonify({"success": False, "error": "Product not found"}), 404
+    
+    return jsonify({
+        "success": False, 
+        "error": "Product not found"
+    }), 404
 
-# Added product from external API to our inventory
+
+# My route to add a product from OpenFoodFacts to inventory
 @app.route('/items/from-external', methods=['POST'])
 def add_from_external():
-    """Add a product found on OpenFoodFacts directly into our inventory"""
     data = request.get_json()
     barcode = data.get('barcode')
     name = data.get('name')
     
+    # Need at least barcode or name
     if not barcode and not name:
-        return jsonify({"success": False, "error": "Barcode or name is required"}), 400
+        return jsonify({
+            "success": False, 
+            "error": "Barcode or name is required"
+        }), 400
     
     # Try to get real data from OpenFoodFacts
     product = None
@@ -134,6 +193,7 @@ def add_from_external():
             "code": barcode or "Unknown"
         }
     
+    # Create new item from external data
     new_item = {
         "id": len(inventory) + 1,
         "name": product.get('product_name', name or 'Unknown Product'),
@@ -153,5 +213,7 @@ def add_from_external():
         "note": "Used mock data (API unavailable)" if not product.get('product_name') else "From OpenFoodFacts"
     }), 201
 
+
+# Running  the app
 if __name__ == '__main__':
     app.run(debug=True)
