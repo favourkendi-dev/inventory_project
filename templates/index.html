@@ -30,9 +30,14 @@
         <!-- Header -->
         <div class="flex justify-between items-center mb-8 border-b pb-4">
             <h1 class="text-4xl font-bold text-gray-800">My Inventory</h1>
-            <div class="text-sm text-gray-500 flex items-center gap-2">
-                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Online</span>
-                Inventory Management Project
+            <div class="flex items-center gap-4">
+                <span id="user-greeting" class="text-sm text-gray-600 hidden">Welcome, <span id="username-display"></span></span>
+                <button id="logoutBtn" onclick="logout()" class="hidden bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition">
+                    Logout
+                </button>
+                <a id="loginLink" href="/login" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">
+                    Login
+                </a>
             </div>
         </div>
         
@@ -93,6 +98,6 @@
             Inventory Management System • Built with Flask & Tailwind • Favour Kendi
         </footer>
     </div>
-<script src="/static/js/script.js"></script>
+    <script src="/static/js/script.js"></script>
 </body>
 </html>
