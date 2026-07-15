@@ -1,17 +1,45 @@
 // script.js
 // My JavaScript for the Inventory Management System
 
-// For Loading inventory when the page is ready
+// Load inventory when the page is ready
 window.onload = function() {
     loadInventory();
 };
 
-// For Loading all items from the backend
+// My function to calculate and update dashboard stats
+function updateDashboard(items) {
+    // Calculate total items
+    const totalItems = items.length;
+    
+    // Calculate total value (quantity * price for each item)
+    let totalValue = 0;
+    items.forEach(item => {
+        totalValue += (item.quantity * item.price);
+    });
+    
+    // Count low stock items (quantity less than 5)
+    let lowStockCount = 0;
+    items.forEach(item => {
+        if (item.quantity < 5) {
+            lowStockCount++;
+        }
+    });
+    
+    // Update the HTML elements
+    document.getElementById('total-items').textContent = totalItems;
+    document.getElementById('total-value').textContent = 'Ksh ' + totalValue.toFixed(2);
+    document.getElementById('low-stock').textContent = lowStockCount;
+}
+
+// Load all items from the backend
 async function loadInventory() {
     try {
         const response = await fetch('/items');
         const data = await response.json();
         const container = document.getElementById('inventory-list');
+        
+        // Update dashboard stats with the items
+        updateDashboard(data.items);
         
         if (data.items.length === 0) {
             container.innerHTML = `
@@ -59,7 +87,7 @@ async function loadInventory() {
     }
 }
 
-// Event Handler i Used to Handle adding new item
+// Handle adding new item
 document.getElementById('addForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -137,7 +165,7 @@ async function addFromExternal(barcode) {
     }
 }
 
-//My Function to Delete an item
+// Delete an item
 async function deleteItem(id) {
     if (!confirm("Are you sure you want to delete this item?")) {
         return;
