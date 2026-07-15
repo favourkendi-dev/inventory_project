@@ -11,7 +11,7 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
     <div class="max-w-6xl mx-auto p-6">
-        <!-- My Dashboard Stats -->
+        <!-- Dashboard Stats -->
         <div class="grid grid-cols-3 gap-4 mb-8">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
                 <p class="text-gray-500 text-sm">Total Items</p>
@@ -59,7 +59,7 @@
                 </form>
             </div>
 
-            <!--My  Search Card -->
+            <!-- Search Card -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h2 class="text-2xl font-semibold mb-6 text-gray-800">Search OpenFoodFacts</h2>
                 <form id="searchForm" class="space-y-4">
@@ -74,7 +74,13 @@
             </div>
         </div>
 
-        <!--My  Inventory Section -->
+        <!-- Local Search -->
+        <div class="mt-10 mb-4">
+            <input type="text" id="localSearch" placeholder="Search your inventory..." 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+        </div>
+
+        <!-- Inventory Section -->
         <div class="mt-12">
             <h2 class="text-2xl font-semibold mb-6 text-gray-800">Current Inventory</h2>
             <div id="inventory-list" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -82,7 +88,7 @@
             </div>
         </div>
 
-        <!--  My Footer Section-->
+        <!--  My Footer -->
         <footer class="mt-16 text-center text-gray-500 text-sm">
             Inventory Management System • Built with Flask & Tailwind • Favour Kendi
         </footer>
