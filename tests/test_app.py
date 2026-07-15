@@ -32,5 +32,25 @@ def test_add_item(client):
     assert response.status_code == 201
     assert response.json["success"] == True
 
+
+
+# Test for external API search
+def test_search_product(client):
+    response = client.get('/search?q=test')
+    assert response.status_code in [200, 404]  # Either success or not found is okay
+
+# Test for invalid input when adding item
+def test_add_item_invalid(client):
+    response = client.post('/items', json={"quantity": 10})  # No name
+    assert response.status_code == 400
+
+# My test for delete item
+def test_delete_item(client):
+    # First add an item
+    client.post('/items', json={"name": "Test Delete", "quantity": 5})
+    # Then delete the last item (assuming id = 1 for simplicity)
+    response = client.delete('/items/1')
+    assert response.status_code == 200
+
 if __name__ == "__main__":
     pytest.main()
