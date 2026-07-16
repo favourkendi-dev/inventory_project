@@ -22,3 +22,46 @@ A Flask based inventory management system with OpenFoodFacts API integration
 ```bash
 git clone https://github.com/favourkendi-dev/inventory_project.git
 cd inventory_project
+
+## API Endpoints
+
+| Endpoint | Method | Description | Auth Required |
+|---|---|---|---|
+| `/` | GET | Main web interface | Yes |
+| `/api` | GET | Check API status | No |
+| `/items` | GET | Get all inventory items | No (CLI) / Yes (Web) |
+| `/items` | POST | Add new item | No (CLI) / Yes (Web) |
+| `/items/&lt;id&gt;` | GET | Get single item by ID | Yes |
+| `/items/&lt;id&gt;` | PATCH | Update item fields | Yes |
+| `/items/&lt;id&gt;` | DELETE | Delete item | Yes |
+| `/search` | GET | Search OpenFoodFacts API | No (CLI) / Yes (Web) |
+| `/items/external` | POST | Add product from OpenFoodFacts | No (CLI) / Yes (Web) |
+| `/login` | GET/POST | User login | No |
+| `/register` | GET/POST | User registration | No |
+| `/logout` | POST | User logout | Yes |
+| `/check-session` | GET | Check login status | No |
+
+### Request/Response Examples
+
+**Add Item (POST /items)**
+```json
+// Request
+{
+  "name": "Rice",
+  "quantity": 10,
+  "price": 200.00
+}
+
+// Response
+{
+  "success": true,
+  "message": "Successfully added Rice to inventory",
+  "item": {
+    "id": 1,
+    "name": "Rice",
+    "quantity": 10,
+    "price": 200.00,
+    "category": "General"
+  }
+}
+
