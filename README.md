@@ -11,3 +11,14 @@ A Flask based inventory management system with OpenFoodFacts API integration
 - **User Authentication** — Login and register with session management
 - **Dashboard Stats** — View total items, total value, and low stock alerts
 - **Local Search & Filter** — Search inventory items in real-time
+
+## Installation & Setup
+
+### Prerequisites
+- Python 3.10+
+- pipenv
+
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/favourkendi-dev/inventory_project.git
+cd inventory_project
