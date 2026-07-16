@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, render_template, session
+from functools import wraps
 from external_api import search_product_by_barcode, search_product_by_name
 
 app = Flask(__name__)
@@ -11,16 +12,47 @@ inventory = []
 users = []
 
 
-# Route to serve the main HTML page
+# My decorator to check if user is logged in
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({
+                "success": False,
+                "error": "Please login to access this resource"
+            }), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+#My  Route to serve the main HTML page
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
-# API route to check if backend is running
+# API route for checking if backend is running
 @app.route('/api')
 def api_home():
     return jsonify({"message": "Inventory Management System API is running!"})
+
+
+# My route to check if user is logged in
+@app.route('/check-session', methods=['GET'])
+def check_session():
+    if 'user_id' in session:
+        return jsonify({
+            "success": True,
+            "logged_in": True,
+            "user": {
+                "id": session['user_id'],
+                "username": session['username']
+            }
+        })
+    return jsonify({
+        "success": True,
+        "logged_in": False
+    })
 
 
 # My route to render login page
@@ -85,7 +117,7 @@ def login():
     username = data['username']
     password = data['password']
     
-    # Find user by username
+    # Finding the  user by username
     user = next((user for user in users if user['username'] == username), None)
     
     if not user:
@@ -94,14 +126,14 @@ def login():
             "error": "User not found"
         }), 404
     
-    # Checking for  password 
+    # Checking  password 
     if user['password'] != password:
         return jsonify({
             "success": False,
             "error": "Incorrect password"
         }), 401
     
-    # Store user in session
+    # Storing  user in session
     session['user_id'] = user['id']
     session['username'] = user['username']
     
@@ -127,6 +159,7 @@ def logout():
 
 # My route to get all items in inventory
 @app.route('/items', methods=['GET'])
+@login_required
 def get_items():
     return jsonify({
         "success": True,
@@ -137,17 +170,18 @@ def get_items():
 
 # My route to add a new item manually
 @app.route('/items', methods=['POST'])
+@login_required
 def add_item():
     data = request.get_json()
     
-    # Check if item name is provided
+    # This one will Check if item name is provided
     if not data or not data.get('name'):
         return jsonify({
             "success": False, 
             "error": "Item name is required"
         }), 400
     
-    # Create the new item
+    # Creates the new item
     new_item = {
         "id": len(inventory) + 1,
         "name": data['name'],
@@ -168,6 +202,7 @@ def add_item():
 
 # My route to get a single item by ID
 @app.route('/items/<int:item_id>', methods=['GET'])
+@login_required
 def get_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
     
@@ -182,8 +217,8 @@ def get_item(item_id):
 
 # My route to update an existing item
 @app.route('/items/<int:item_id>', methods=['PATCH'])
+@login_required
 def update_item(item_id):
-    """Update an existing item's details"""
     item = next((item for item in inventory if item['id'] == item_id), None)
     
     if not item:
@@ -213,8 +248,8 @@ def update_item(item_id):
 
 # My route to delete an item
 @app.route('/items/<int:item_id>', methods=['DELETE'])
+@login_required
 def delete_item(item_id):
-    """Delete an item from the inventory"""
     item = next((item for item in inventory if item['id'] == item_id), None)
     
     if not item:
@@ -233,8 +268,8 @@ def delete_item(item_id):
 
 # My route to search products from OpenFoodFacts
 @app.route('/search', methods=['GET'])
+@login_required
 def search_product():
-    """Search for a product using OpenFoodFacts API"""
     query = request.args.get('q')
     barcode = request.args.get('barcode')
     
@@ -270,6 +305,7 @@ def search_product():
 
 # My route to add a product from OpenFoodFacts to inventory
 @app.route('/items/from-external', methods=['POST'])
+@login_required
 def add_from_external():
     data = request.get_json()
     barcode = data.get('barcode')

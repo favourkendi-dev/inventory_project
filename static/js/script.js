@@ -1,23 +1,62 @@
-// script.js
+
 // My JavaScript for the Inventory Management System
 
-// Load inventory when the page is ready
+// This Array stores all items for filtering
+let allItems = [];
+
+// Loads inventory when the page is ready
 window.onload = function() {
+    checkSession();
     loadInventory();
 };
 
+// My function to check if user is logged in
+async function checkSession() {
+    try {
+        const response = await fetch('/check-session');
+        const data = await response.json();
+        
+        if (data.logged_in) {
+            // User is logged in then  show logout button and greeting
+            document.getElementById('user-greeting').classList.remove('hidden');
+            document.getElementById('username-display').textContent = data.user.username;
+            document.getElementById('logoutBtn').classList.remove('hidden');
+            document.getElementById('loginLink').classList.add('hidden');
+        } else {
+            // User is not logged in  then redirect to login
+            window.location.href = '/login';
+        }
+    } catch (error) {
+        console.error("Error checking session:", error);
+        window.location.href = '/login';
+    }
+}
+
+// My function to handle logout
+async function logout() {
+    try {
+        const response = await fetch('/logout', {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        alert(result.message);
+        window.location.href = '/login';
+        
+    } catch (error) {
+        alert("Failed to logout. Please try again.");
+    }
+}
+
 // My function to calculate and update dashboard stats
 function updateDashboard(items) {
-    // Calculate total items
     const totalItems = items.length;
     
-    // Calculate total value (quantity * price for each item)
     let totalValue = 0;
     items.forEach(item => {
         totalValue += (item.quantity * item.price);
     });
     
-    // Count low stock items (quantity less than 5)
     let lowStockCount = 0;
     items.forEach(item => {
         if (item.quantity < 5) {
@@ -25,69 +64,104 @@ function updateDashboard(items) {
         }
     });
     
-    // Update the HTML elements
     document.getElementById('total-items').textContent = totalItems;
     document.getElementById('total-value').textContent = 'Ksh ' + totalValue.toFixed(2);
     document.getElementById('low-stock').textContent = lowStockCount;
 }
 
-// Load all items from the backend
+// My function to display items in the table
+function displayItems(items) {
+    const container = document.getElementById('inventory-list');
+    
+    if (items.length === 0) {
+        container.innerHTML = `
+            <p class="text-gray-500 text-center py-12">
+                No items found matching your search.
+            </p>`;
+        return;
+    }
+
+    let html = `
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-50 border-b">
+                    <th class="px-6 py-4 text-left font-medium">ID</th>
+                    <th class="px-6 py-4 text-left font-medium">Name</th>
+                    <th class="px-6 py-4 text-left font-medium">Quantity</th>
+                    <th class="px-6 py-4 text-left font-medium">Price</th>
+                    <th class="px-6 py-4 text-left font-medium">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+    `;
+
+    items.forEach(item => {
+        html += `
+            <tr>
+                <td class="px-6 py-4">${item.id}</td>
+                <td class="px-6 py-4 font-medium">${item.name}</td>
+                <td class="px-6 py-4">${item.quantity}</td>
+                <td class="px-6 py-4">Ksh ${item.price}</td>
+                <td class="px-6 py-4">
+                    <button onclick="deleteItem(${item.id})" 
+                            class="bg-red-600 hover:bg-red-700 text-white px-5 py-1.5 rounded-lg text-sm transition">
+                        Delete
+                    </button>
+                </td>
+            </tr>`;
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+// Function to load all items from the backend
 async function loadInventory() {
     try {
         const response = await fetch('/items');
-        const data = await response.json();
-        const container = document.getElementById('inventory-list');
         
-        // Update dashboard stats with the items
-        updateDashboard(data.items);
-        
-        if (data.items.length === 0) {
-            container.innerHTML = `
-                <p class="text-gray-500 text-center py-12">
-                    No items in inventory yet. Add some using the form above!
-                </p>`;
+        // If not logged in, redirect to login
+        if (response.status === 401) {
+            window.location.href = '/login';
             return;
         }
-
-        let html = `
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-gray-50 border-b">
-                        <th class="px-6 py-4 text-left font-medium">ID</th>
-                        <th class="px-6 py-4 text-left font-medium">Name</th>
-                        <th class="px-6 py-4 text-left font-medium">Quantity</th>
-                        <th class="px-6 py-4 text-left font-medium">Price</th>
-                        <th class="px-6 py-4 text-left font-medium">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y">
-        `;
-
-        data.items.forEach(item => {
-            html += `
-                <tr>
-                    <td class="px-6 py-4">${item.id}</td>
-                    <td class="px-6 py-4 font-medium">${item.name}</td>
-                    <td class="px-6 py-4">${item.quantity}</td>
-                    <td class="px-6 py-4">Ksh ${item.price}</td>
-                    <td class="px-6 py-4">
-                        <button onclick="deleteItem(${item.id})" 
-                                class="bg-red-600 hover:bg-red-700 text-white px-5 py-1.5 rounded-lg text-sm transition">
-                            Delete
-                        </button>
-                    </td>
-                </tr>`;
-        });
-
-        html += '</tbody></table>';
-        container.innerHTML = html;
+        
+        const data = await response.json();
+        
+        // Storing  items for filtering
+        allItems = data.items;
+        
+        // Updating  dashboard stats
+        updateDashboard(allItems);
+        
+        // Displaying all items
+        displayItems(allItems);
 
     } catch (error) {
         console.error("Error loading inventory:", error);
     }
 }
 
-// Handle adding new item
+// My function to filter items based on search input
+function filterItems() {
+    const searchTerm = document.getElementById('localSearch').value.toLowerCase().trim();
+    
+    if (searchTerm === '') {
+        displayItems(allItems);
+        return;
+    }
+    
+    const filtered = allItems.filter(item => {
+        return item.name.toLowerCase().includes(searchTerm);
+    });
+    
+    displayItems(filtered);
+}
+
+// I Added event listener for the  local search
+document.getElementById('localSearch').addEventListener('input', filterItems);
+
+// Handles adding new item
 document.getElementById('addForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -105,6 +179,12 @@ document.getElementById('addForm').addEventListener('submit', async function(e) 
                 price: parseFloat(price)
             })
         });
+
+        // If user is  not logged in then  redirect the user to login
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
 
         const result = await response.json();
         alert(result.message || "Item added successfully!");
@@ -127,6 +207,13 @@ document.getElementById('searchForm').addEventListener('submit', async function(
 
     try {
         const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+        
+        // If not logged in, redirect to login
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
         const data = await response.json();
 
         if (data.success) {
@@ -156,6 +243,12 @@ async function addFromExternal(barcode) {
             body: JSON.stringify({ barcode: barcode, quantity: 1 })
         });
         
+        // If not logged in, redirect to login
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
         const result = await response.json();
         alert(result.message);
         loadInventory();
@@ -163,7 +256,7 @@ async function addFromExternal(barcode) {
     } catch (error) {
         alert("Failed to add item from external source.");
     }
-}
+});
 
 // Delete an item
 async function deleteItem(id) {
@@ -176,6 +269,12 @@ async function deleteItem(id) {
             method: 'DELETE'
         });
         
+        // If not logged in, redirect to login
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
         const result = await response.json();
         alert(result.message);
         loadInventory();

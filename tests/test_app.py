@@ -41,7 +41,7 @@ def test_search_product(client):
 
 # Test for invalid input when adding item
 def test_add_item_invalid(client):
-    response = client.post('/items', json={"quantity": 10})  # No name
+    response = client.post('/items', json={"quantity": 10})  # No name added
     assert response.status_code == 400
 
 # My test for delete item

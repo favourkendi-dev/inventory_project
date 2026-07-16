@@ -11,7 +11,7 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
     <div class="max-w-6xl mx-auto p-6">
-        <!-- Dashboard Stats -->
+        <!-- Dashboard for oownloading stats -->
         <div class="grid grid-cols-3 gap-4 mb-8">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
                 <p class="text-gray-500 text-sm">Total Items</p>
@@ -27,18 +27,23 @@
             </div>
         </div>
 
-        <!-- Header -->
+        <!-- My Header -->
         <div class="flex justify-between items-center mb-8 border-b pb-4">
             <h1 class="text-4xl font-bold text-gray-800">My Inventory</h1>
-            <div class="text-sm text-gray-500 flex items-center gap-2">
-                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Online</span>
-                Inventory Management Project
+            <div class="flex items-center gap-4">
+                <span id="user-greeting" class="text-sm text-gray-600 hidden">Welcome <span id="username-display"></span></span>
+                <button id="logoutBtn" onclick="logout()" class="hidden bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition">
+                    Logout
+                </button>
+                <a id="loginLink" href="/login" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">
+                    Login
+                </a>
             </div>
         </div>
         
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            <!-- Add New Item Card -->
+            <!-- Adding a  New Item Card -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h2 class="text-2xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
                     <span>Add New Item</span>
@@ -59,7 +64,7 @@
                 </form>
             </div>
 
-            <!-- Search Card -->
+            <!-- Searching Card -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h2 class="text-2xl font-semibold mb-6 text-gray-800">Search OpenFoodFacts</h2>
                 <form id="searchForm" class="space-y-4">
@@ -90,9 +95,9 @@
 
         <!--  My Footer -->
         <footer class="mt-16 text-center text-gray-500 text-sm">
-            Inventory Management System • Built with Flask & Tailwind • Favour Kendi
+            Inventory Management System  Built with Flask & Tailwind  Favour Kendi
         </footer>
     </div>
-<script src="/static/js/script.js"></script>
+    <script src="/static/js/script.js"></script>
 </body>
 </html>
