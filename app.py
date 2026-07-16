@@ -159,7 +159,6 @@ def logout():
 
 # My route to get all items in inventory
 @app.route('/items', methods=['GET'])
-@login_required
 def get_items():
     return jsonify({
         "success": True,
@@ -170,7 +169,6 @@ def get_items():
 
 # My route to add a new item manually
 @app.route('/items', methods=['POST'])
-@login_required
 def add_item():
     data = request.get_json()
     
@@ -202,7 +200,6 @@ def add_item():
 
 # My route to get a single item by ID
 @app.route('/items/<int:item_id>', methods=['GET'])
-@login_required
 def get_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
     
@@ -217,7 +214,6 @@ def get_item(item_id):
 
 # My route to update an existing item
 @app.route('/items/<int:item_id>', methods=['PATCH'])
-@login_required
 def update_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
     
@@ -248,7 +244,7 @@ def update_item(item_id):
 
 # My route to delete an item
 @app.route('/items/<int:item_id>', methods=['DELETE'])
-@login_required
+
 def delete_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
     
@@ -268,7 +264,6 @@ def delete_item(item_id):
 
 # My route to search products from OpenFoodFacts
 @app.route('/search', methods=['GET'])
-@login_required
 def search_product():
     query = request.args.get('q')
     barcode = request.args.get('barcode')
@@ -305,7 +300,6 @@ def search_product():
 
 # My route to add a product from OpenFoodFacts to inventory
 @app.route('/items/from-external', methods=['POST'])
-@login_required
 def add_from_external():
     data = request.get_json()
     barcode = data.get('barcode')
