@@ -65,3 +65,63 @@ cd inventory_project
   }
 }
 
+## CLI Usage Examples
+
+The CLI tool allows you to manage inventory from the terminal.
+
+// Response
+{
+  "success": true,
+  "product": {
+    "name": "Nutella",
+    "brand": "Ferrero",
+    "category": "Spreads",
+    "barcode": "3017624010701"
+  }
+}
+
+### Start the CLI
+```bash
+pipenv run python cli.py
+
+=== My Inventory CLI Application ===
+Welcome! Let's manage our stock.
+
+What would you like to do?
+1. View all items
+2. Add new item
+3. Update item
+4. Delete item
+5. Search OpenFoodFacts
+6. Add from OpenFoodFacts
+7. Exit
+
+Enter your choice (1-7): 1
+
+--- Current Inventory ---
+ID: 1 | Rice | Qty: 10 | Price: Ksh 200
+ID: 2 | Sugar | Qty: 5 | Price: Ksh 150
+
+Enter your choice (1-7): 5
+Enter product name or barcode: nutella
+
+Found: Nutella
+Brand: Ferrero
+Category: Spreads
+
+Enter your choice (1-7): 3
+
+--- Update Item ---
+Enter item ID to update: 1
+Leave blank if you don't want to change a field.
+New name (or press Enter to keep same): Brown Rice
+New quantity (or press Enter to keep same): 15
+New price (or press Enter to keep same): 250
+Item updated successfully
+
+Enter your choice (1-7): 4
+
+--- Delete Item ---
+Enter item ID to delete: 2
+Are you sure you want to delete item 2? (yes/no): yes
+Item deleted successfully
