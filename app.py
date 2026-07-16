@@ -299,7 +299,7 @@ def search_product():
 
 
 # My route to add a product from OpenFoodFacts to inventory
-@app.route('/items/from-external', methods=['POST'])
+@app.route('/items/external', methods=['POST'])
 def add_from_external():
     data = request.get_json()
     barcode = data.get('barcode')

@@ -237,7 +237,7 @@ document.getElementById('searchForm').addEventListener('submit', async function(
 // Add searched product to inventory
 async function addFromExternal(barcode) {
     try {
-        const response = await fetch('/items/from-external', {
+        const response = await fetch('/items/external', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ barcode: barcode, quantity: 1 })

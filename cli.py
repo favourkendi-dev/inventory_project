@@ -350,7 +350,7 @@ def add_from_external():
         return
     
     try:
-        response = requests.post(f"{BASE_URL}/items/from-external", json={
+        response = requests.post(f"{BASE_URL}/items/external", json={
             "barcode": query,
             "quantity": quantity
         }, timeout=15)
