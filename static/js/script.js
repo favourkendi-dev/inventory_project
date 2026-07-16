@@ -256,7 +256,7 @@ async function addFromExternal(barcode) {
     } catch (error) {
         alert("Failed to add item from external source.");
     }
-});
+};
 
 // Delete an item
 async function deleteItem(id) {
