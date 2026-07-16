@@ -48,23 +48,6 @@ In a new terminal:
 pipenv run python cli.py
 ```
 
-## API Endpoints
-
-| Endpoint | Method | Description | Auth Required |
-|----------|--------|--------------|----------------|
-| `/` | GET | Main web interface | Yes |
-| `/api` | GET | Check API status | No |
-| `/items` | GET | Get all inventory items | No (CLI) / Yes (Web) |
-| `/items` | POST | Add new item | No (CLI) / Yes (Web) |
-| `/items/<id>` | GET | Get single item by ID | Yes |
-| `/items/<id>` | PATCH | Update item fields | Yes |
-| `/items/<id>` | DELETE | Delete item | Yes |
-| `/search` | GET | Search OpenFoodFacts API | No (CLI) / Yes (Web) |
-| `/items/external` | POST | Add product from OpenFoodFacts | No (CLI) / Yes (Web) |
-| `/login` | GET/POST | User login | No |
-| `/register` | GET/POST | User registration | No |
-| `/logout` | POST | User logout | Yes |
-| `/check-session` | GET | Check login status | No |
 
 ## Request/Response Examples
 
@@ -116,7 +99,7 @@ pipenv run python cli.py
 
 ### Menu Options
 ```
-=== My Inventory CLI Application ===
+ My Inventory CLI Application 
 Welcome! Let's manage our stock.
 
 What would you like to do?
@@ -133,7 +116,7 @@ What would you like to do?
 ```
 Enter your choice (1-7): 1
 
---- Current Inventory ---
+ Current Inventory
 ID: 1 | Rice | Qty: 10 | Price: Ksh 200
 ID: 2 | Sugar | Qty: 5 | Price: Ksh 150
 ```
@@ -142,7 +125,7 @@ ID: 2 | Sugar | Qty: 5 | Price: Ksh 150
 ```
 Enter your choice (1-7): 2
 
---- Add New Item ---
+ Add New Item 
 Enter item name: Milk
 Enter quantity: 12
 Enter price (Ksh): 120
@@ -171,7 +154,7 @@ Added Nutella to inventory
 ```
 Enter your choice (1-7): 3
 
---- Update Item ---
+ Update Item 
 Enter item ID to update: 1
 Leave blank if you don't want to change a field.
 New name (or press Enter to keep same): Brown Rice
@@ -184,7 +167,7 @@ Item updated successfully
 ```
 Enter your choice (1-7): 4
 
---- Delete Item ---
+ Delete Item 
 Enter item ID to delete: 2
 Are you sure you want to delete item 2? (yes/no): yes
 Item deleted successfully
@@ -241,5 +224,3 @@ pipenv run pytest tests/ --cov=app --cov=cli --cov=external_api
 ## Author
 Favour Kendi 
 
-## License
-This project is for educational purposes.
