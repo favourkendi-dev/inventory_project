@@ -4,7 +4,6 @@
 // This Array stores all items for filtering
 let allItems = [];
 
-// Loads inventory when the page is ready
 window.onload = function() {
     checkSession();
     loadInventory();
@@ -256,7 +255,7 @@ async function addFromExternal(barcode) {
     } catch (error) {
         alert("Failed to add item from external source.");
     }
-});
+};
 
 // Delete an item
 async function deleteItem(id) {
