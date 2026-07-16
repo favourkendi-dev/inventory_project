@@ -1,7 +1,7 @@
 
 // My JavaScript for handling login and registration
 
-// Handle registration form (only if it exists on this page)
+// This is used for Handling  registration form only if it exists on this page
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
     registerForm.addEventListener('submit', async function(e) {
@@ -35,7 +35,7 @@ if (registerForm) {
     });
 }
 
-// Handle login form (only if it exists on this page)
+// This is used for Handling  login form only if it exists on this page
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
     loginForm.addEventListener('submit', async function(e) {

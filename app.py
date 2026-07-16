@@ -25,13 +25,13 @@ def login_required(f):
     return decorated_function
 
 
-# Route to serve the main HTML page
+#My  Route to serve the main HTML page
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
-# API route to check if backend is running
+# API route for checking if backend is running
 @app.route('/api')
 def api_home():
     return jsonify({"message": "Inventory Management System API is running!"})
@@ -89,7 +89,7 @@ def register():
             "error": "Username already exists"
         }), 400
     
-    # Create new user
+    # Creating a  new user
     new_user = {
         "id": len(users) + 1,
         "username": username,
@@ -117,7 +117,7 @@ def login():
     username = data['username']
     password = data['password']
     
-    # Find user by username
+    # Finding the  user by username
     user = next((user for user in users if user['username'] == username), None)
     
     if not user:
@@ -126,14 +126,14 @@ def login():
             "error": "User not found"
         }), 404
     
-    # Check password (plain text comparison)
+    # Checking  password 
     if user['password'] != password:
         return jsonify({
             "success": False,
             "error": "Incorrect password"
         }), 401
     
-    # Store user in session
+    # Storing  user in session
     session['user_id'] = user['id']
     session['username'] = user['username']
     
