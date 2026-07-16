@@ -215,6 +215,7 @@ def get_item(item_id):
 # My route to update an existing item
 @app.route('/items/<int:item_id>', methods=['PATCH'])
 def update_item(item_id):
+    """Update an existing item's details"""
     item = next((item for item in inventory if item['id'] == item_id), None)
     
     if not item:
@@ -225,15 +226,56 @@ def update_item(item_id):
     
     data = request.get_json()
     
-    # Update only the fields that are provided
-    if data.get('name'):
-        item['name'] = data['name']
+    # Check if data is provided
+    if not data:
+        return jsonify({
+            "success": False,
+            "error": "No update data provided"
+        }), 400
+    
+    # List of allowed fields that can be updated
+    allowed_fields = ['name', 'quantity', 'price', 'category']
+    
+    # Check for invalid fields
+    invalid_fields = [key for key in data.keys() if key not in allowed_fields]
+    if invalid_fields:
+        return jsonify({
+            "success": False,
+            "error": f"Invalid fields: {', '.join(invalid_fields)}. Allowed fields are: {', '.join(allowed_fields)}"
+        }), 400
+    
+    # Update only the fields that are provided and valid
+    if 'name' in data:
+        if not isinstance(data['name'], str) or len(data['name'].strip()) < 2:
+            return jsonify({
+                "success": False,
+                "error": "Name must be a string with at least 2 characters"
+            }), 400
+        item['name'] = data['name'].strip()
+    
     if 'quantity' in data:
+        if not isinstance(data['quantity'], int) or data['quantity'] < 0:
+            return jsonify({
+                "success": False,
+                "error": "Quantity must be a positive whole number"
+            }), 400
         item['quantity'] = data['quantity']
+    
     if 'price' in data:
-        item['price'] = data['price']
-    if data.get('category'):
-        item['category'] = data['category']
+        if not isinstance(data['price'], (int, float)) or data['price'] < 0:
+            return jsonify({
+                "success": False,
+                "error": "Price must be a positive number"
+            }), 400
+        item['price'] = float(data['price'])
+    
+    if 'category' in data:
+        if not isinstance(data['category'], str) or len(data['category'].strip()) < 1:
+            return jsonify({
+                "success": False,
+                "error": "Category must be a non-empty string"
+            }), 400
+        item['category'] = data['category'].strip()
     
     return jsonify({
         "success": True, 
@@ -242,22 +284,21 @@ def update_item(item_id):
     })
 
 
-# My route to delete an item
+# My route to delete an existing item
 @app.route('/items/<int:item_id>', methods=['DELETE'])
-
 def delete_item(item_id):
     item = next((item for item in inventory if item['id'] == item_id), None)
-    
+
     if not item:
         return jsonify({
-            "success": False, 
+            "success": False,
             "error": f"Item with id {item_id} not found"
         }), 404
-    
+
     inventory.remove(item)
-    
+
     return jsonify({
-        "success": True, 
+        "success": True,
         "message": "Item deleted successfully"
     })
 
@@ -299,7 +340,7 @@ def search_product():
 
 
 # My route to add a product from OpenFoodFacts to inventory
-@app.route('/items/from-external', methods=['POST'])
+@app.route('/items/external', methods=['POST'])
 def add_from_external():
     data = request.get_json()
     barcode = data.get('barcode')
@@ -346,7 +387,7 @@ def add_from_external():
         "success": True,
         "message": f"Added {new_item['name']} to inventory",
         "item": new_item,
-        "note": "Used mock data (API unavailable)" if not product.get('product_name') else "From OpenFoodFacts"
+        "note": "Used mock data" if not product.get('product_name') else "From OpenFoodFacts"
     }), 201
 
 

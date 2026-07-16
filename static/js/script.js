@@ -1,4 +1,3 @@
-
 // My JavaScript for the Inventory Management System
 
 // This Array stores all items for filtering
@@ -195,7 +194,7 @@ document.getElementById('addForm').addEventListener('submit', async function(e) 
     }
 });
 
-// Search from OpenFoodFacts
+// Search from OpenFoodFacts with loading spinner and styled error messages
 document.getElementById('searchForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -203,6 +202,14 @@ document.getElementById('searchForm').addEventListener('submit', async function(
     const resultDiv = document.getElementById('searchResult');
     
     if (!query) return;
+
+    // Clear previous results and show loading spinner
+    resultDiv.innerHTML = `
+        <div class="flex items-center justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+            <span class="ml-3 text-gray-500">Searching...</span>
+        </div>
+    `;
 
     try {
         const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
@@ -219,6 +226,7 @@ document.getElementById('searchForm').addEventListener('submit', async function(
             resultDiv.innerHTML = `
                 <div class="bg-green-50 p-5 rounded-2xl border border-green-100">
                     <p class="font-medium text-green-800">Found: ${data.product.name}</p>
+                    <p class="text-sm text-gray-600 mt-1">Brand: ${data.product.brand || 'N/A'}</p>
                     <button onclick="addFromExternal('${data.product.barcode || query}')" 
                             class="mt-4 bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition">
                         Add to My Inventory
@@ -226,17 +234,32 @@ document.getElementById('searchForm').addEventListener('submit', async function(
                 </div>
             `;
         } else {
-            resultDiv.innerHTML = `<p class="text-red-600 p-4">${data.error}</p>`;
+            // Styled error message
+            resultDiv.innerHTML = `
+                <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                    <p class="text-red-600 flex items-center gap-2">
+                        ${data.error || 'Product not found'}
+                    </p>
+                    <p class="text-sm text-gray-500 mt-2">Try searching with a different name or barcode.</p>
+                </div>
+            `;
         }
     } catch (error) {
-        resultDiv.innerHTML = `<p class="text-red-600 p-4">Could not connect to search service.</p>`;
+        // Styled connection error
+        resultDiv.innerHTML = `
+            <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                <p class="text-red-600 flex items-center gap-2">
+                    Could not connect to search service.
+                </p>
+            </div>
+        `;
     }
 });
 
 // Add searched product to inventory
 async function addFromExternal(barcode) {
     try {
-        const response = await fetch('/items/from-external', {
+        const response = await fetch('/items/external', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ barcode: barcode, quantity: 1 })

@@ -7,8 +7,10 @@ name = "pypi"
 flask = "*"
 requests = "*"
 pytest = "*"
+pytest-cov = "*"
 
 [dev-packages]
+pytest-cov = "*"
 
 [requires]
 python_version = "3.12"
