@@ -1,14 +1,15 @@
-from flask import Flask, jsonify, request, render_template, session
+from flask import Flask, jsonify, request, render_template, session, send_from_directory
 from functools import wraps
 from external_api import search_product_by_barcode, search_product_by_name
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.secret_key = 'my_secret_key_for_sessions'
 
 # My mock database for storing inventory items
 inventory = []
 
-# My mock database for storing users (plain text for demo)
+# My mock database for storing users 
 users = []
 
 
@@ -25,7 +26,7 @@ def login_required(f):
     return decorated_function
 
 
-#My  Route to serve the main HTML page
+# My Route to serve the main HTML page
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -89,7 +90,7 @@ def register():
             "error": "Username already exists"
         }), 400
     
-    # Creating a  new user
+    # Creating a new user
     new_user = {
         "id": len(users) + 1,
         "username": username,
@@ -117,7 +118,7 @@ def login():
     username = data['username']
     password = data['password']
     
-    # Finding the  user by username
+    # Finding the user by username
     user = next((user for user in users if user['username'] == username), None)
     
     if not user:
@@ -126,14 +127,14 @@ def login():
             "error": "User not found"
         }), 404
     
-    # Checking  password 
+    # Checking password 
     if user['password'] != password:
         return jsonify({
             "success": False,
             "error": "Incorrect password"
         }), 401
     
-    # Storing  user in session
+    # Storing user in session
     session['user_id'] = user['id']
     session['username'] = user['username']
     
@@ -172,7 +173,7 @@ def get_items():
 def add_item():
     data = request.get_json()
     
-    # This one will Check if item name is provided
+    # Check if item name is provided
     if not data or not data.get('name'):
         return jsonify({
             "success": False, 
@@ -215,7 +216,6 @@ def get_item(item_id):
 # My route to update an existing item
 @app.route('/items/<int:item_id>', methods=['PATCH'])
 def update_item(item_id):
-    """Update an existing item's details"""
     item = next((item for item in inventory if item['id'] == item_id), None)
     
     if not item:
@@ -226,17 +226,14 @@ def update_item(item_id):
     
     data = request.get_json()
     
-    # Check if data is provided
     if not data:
         return jsonify({
             "success": False,
             "error": "No update data provided"
         }), 400
     
-    # List of allowed fields that can be updated
     allowed_fields = ['name', 'quantity', 'price', 'category']
     
-    # Check for invalid fields
     invalid_fields = [key for key in data.keys() if key not in allowed_fields]
     if invalid_fields:
         return jsonify({
@@ -244,7 +241,6 @@ def update_item(item_id):
             "error": f"Invalid fields: {', '.join(invalid_fields)}. Allowed fields are: {', '.join(allowed_fields)}"
         }), 400
     
-    # Update only the fields that are provided and valid
     if 'name' in data:
         if not isinstance(data['name'], str) or len(data['name'].strip()) < 2:
             return jsonify({
@@ -309,7 +305,6 @@ def search_product():
     query = request.args.get('q')
     barcode = request.args.get('barcode')
     
-    # Searching by barcode or name
     if barcode:
         product = search_product_by_barcode(barcode)
     elif query:
@@ -320,7 +315,6 @@ def search_product():
             "error": "Provide 'q' or 'barcode' parameter"
         }), 400
     
-    # Returning  product if found
     if product:
         return jsonify({
             "success": True,
@@ -340,27 +334,24 @@ def search_product():
 
 
 # My route to add a product from OpenFoodFacts to inventory
-@app.route('/items/external', methods=['POST'])
+@app.route('/items/from-external', methods=['POST'])
 def add_from_external():
     data = request.get_json()
     barcode = data.get('barcode')
     name = data.get('name')
     
-    # Need at least barcode or name
     if not barcode and not name:
         return jsonify({
             "success": False, 
             "error": "Barcode or name is required"
         }), 400
     
-    # Try to get real data from OpenFoodFacts
     product = None
     if barcode:
         product = search_product_by_barcode(barcode)
     elif name:
         product = search_product_by_name(name)
     
-    # Fallback if API fails or product not found
     if not product:
         print("Using mock product data - API unavailable")
         product = {
@@ -370,7 +361,6 @@ def add_from_external():
             "code": barcode or "Unknown"
         }
     
-    # Create new item from external data
     new_item = {
         "id": len(inventory) + 1,
         "name": product.get('product_name', name or 'Unknown Product'),
@@ -391,8 +381,7 @@ def add_from_external():
     }), 201
 
 
-# Running  the app
+# Running the app
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=True)
